@@ -12,6 +12,9 @@ ncol(weather_data)
 #
 # Can we take the same type of data from a different location? That way we can use location as a
 # column.
+# Yes, that is possible. There are several stations in Boston area.
+# We can combine data from all of them for the past 5 years or so.
+# This way we get new columns: LOCATION/ELEVATION, YEAR, MONTH
 
 library(dplyr)
 dplyr::count(weather_data, weather_condition, sort = TRUE)
