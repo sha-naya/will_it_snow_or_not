@@ -1,16 +1,14 @@
+# set working directory
 setwd("/Users/ayan/Desktop/BU/Spring 2023/CS699_project")
 
+# import data file
 weather_data <- read.csv("weather_data.csv")
-nrow(weather_data)
-ncol(weather_data)
 
 # These columns can be used for classification:
-# AWND, PRCP, PRCP_ATTRIBUTES, SNOW_ATTRIBUTES, TAVG, TMAX, TMAX_ATTRIBUTES == TMIN_ATTRIBUTES,
+# AWND, PRCP, PRCP_ATTRIBUTES, SNOW_ATTRIBUTES, TAVG, TMAX, TMAX_ATTRIBUTES == TMIN_ATTRIBUTES (can only use 1),
 # TMIN, WDF2, WDF5, WSF2, WSF5, WT01, WT02, WT03, WT04, WT05, WT06, WT08, WT09, DATE ???
 
-library(dplyr)
-dplyr::count(weather_data, weather_condition, sort = TRUE)
-
+# these are the features mentioned above
 features <- c(
   'AWND', 
   'PRCP', 
@@ -35,8 +33,10 @@ features <- c(
   'weather_condition'
   )
 
+# we take only the columns/features we need
 weather_data_subset <- weather_data[features]
 
+# change categorical variables to numeric
 weather_data_subset$PRCP_ATTRIBUTES <- factor(
   weather_data_subset$PRCP_ATTRIBUTES, 
   levels = c(',,D,2400', ',,W,2400', 'T,,D,2400', 'T,,W,2400'),
@@ -55,6 +55,7 @@ weather_data_subset$TMAX_ATTRIBUTES <- factor(
   labels = c(1, 2)
 )
 
+# fill NA values with 0
 weather_data_subset$WT01[is.na(weather_data_subset$WT01)] <- 0
 weather_data_subset$WT02[is.na(weather_data_subset$WT02)] <- 0
 weather_data_subset$WT03[is.na(weather_data_subset$WT03)] <- 0
@@ -64,4 +65,13 @@ weather_data_subset$WT06[is.na(weather_data_subset$WT06)] <- 0
 weather_data_subset$WT08[is.na(weather_data_subset$WT08)] <- 0
 weather_data_subset$WT09[is.na(weather_data_subset$WT09)] <- 0
 
-
+# scale numeric column to mean = 0 and sd = 1
+weather_data_subset$AWND <- scale(weather_data_subset$AWND)
+weather_data_subset$PRCP <- scale(weather_data_subset$PRCP)
+weather_data_subset$TAVG <- scale(weather_data_subset$TAVG)
+weather_data_subset$TMAX <- scale(weather_data_subset$TMAX)
+weather_data_subset$TMIN <- scale(weather_data_subset$TMIN)
+weather_data_subset$WDF2 <- scale(weather_data_subset$WDF2)
+weather_data_subset$WDF5 <- scale(weather_data_subset$WDF5)
+weather_data_subset$WSF2 <- scale(weather_data_subset$WSF2)
+weather_data_subset$WSF5 <- scale(weather_data_subset$WSF5)
