@@ -108,11 +108,27 @@ boruta_output <- Boruta(weather_condition ~ ., data=weather_data_subset, doTrace
 boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
 print(boruta_signif)  
 
+roughFixMod <- TentativeRoughFix(boruta_output)
+boruta_signif <- getSelectedAttributes(roughFixMod)
+print(boruta_signif)
 
+imps <- attStats(roughFixMod)
+imps2 = imps[imps$decision != 'Rejected', c('meanImp', 'decision')]
+head(imps2[order(-imps2$meanImp), ])
+plot(boruta_output, cex.axis=.7, las=2, xlab="", main="Variable Importance")
 
+#4
+set.seed(17)
+rPartMod <- train(weather_condition ~ ., data=weather_data_subset, method="rpart")
+rpartImp <- varImp(rPartMod)
+print(rpartImp)
 
+set.seed(17)
+rPartMod <- train(weather_condition ~ ., data=weather_data_subset, method="RRF")
+rpartImp <- varImp(rPartMod)
+print(rpartImp)
 
-
+#5
 
 
 
