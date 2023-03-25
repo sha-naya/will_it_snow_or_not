@@ -123,13 +123,10 @@ rPartMod <- train(weather_condition ~ ., data=weather_data_subset, method="rpart
 rpartImp <- varImp(rPartMod)
 print(rpartImp)
 
-set.seed(17)
-rPartMod <- train(weather_condition ~ ., data=weather_data_subset, method="RRF")
-rpartImp <- varImp(rPartMod)
-print(rpartImp)
-
 #5
-
+library(FSelector) #requires JAVA; run in cloud if necessary
+weights <- information.gain(weather_condition~., weather_data_subset)
+weights
 
 
 
