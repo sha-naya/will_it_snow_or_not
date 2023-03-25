@@ -124,20 +124,7 @@ rpartImp <- varImp(rPartMod)
 print(rpartImp)
 
 #5
+install.packages("FSelector")
 library(FSelector) #requires JAVA; run in cloud if necessary
 weights <- information.gain(weather_condition~., weather_data_subset)
 weights
-
-
-
-
-
-
-
-
-
-
-
-
-
-
