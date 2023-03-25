@@ -36,6 +36,9 @@ features <- c(
 # we take only the columns/features we need
 weather_data_subset <- weather_data[features]
 
+# make result column a factor
+weather_data_subset$weather_condition <- as.factor(weather_data_subset$weather_condition)
+
 # change categorical variables to numeric
 weather_data_subset$PRCP_ATTRIBUTES <- factor(
   weather_data_subset$PRCP_ATTRIBUTES, 
@@ -64,6 +67,8 @@ weather_data_subset$WT05[is.na(weather_data_subset$WT05)] <- 0
 weather_data_subset$WT06[is.na(weather_data_subset$WT06)] <- 0
 weather_data_subset$WT08[is.na(weather_data_subset$WT08)] <- 0
 weather_data_subset$WT09[is.na(weather_data_subset$WT09)] <- 0
+weather_data_subset$WDF5[is.na(weather_data_subset$WDF5)] <- 0
+weather_data_subset$WSF5[is.na(weather_data_subset$WSF5)] <- 0
 
 # scale numeric column to mean = 0 and sd = 1
 weather_data_subset$AWND <- scale(weather_data_subset$AWND)
@@ -75,3 +80,51 @@ weather_data_subset$WDF2 <- scale(weather_data_subset$WDF2)
 weather_data_subset$WDF5 <- scale(weather_data_subset$WDF5)
 weather_data_subset$WSF2 <- scale(weather_data_subset$WSF2)
 weather_data_subset$WSF5 <- scale(weather_data_subset$WSF5)
+
+# feature selection 
+#1
+install.packages("party")
+library(party)
+install.packages("varImp")
+library(varImp)
+
+cf1 <- cforest(weather_condition ~ . , data= weather_data_subset, control=cforest_unbiased(mtry=2,ntree=50))
+sort(varimpAUC(cf1))
+
+#2
+library(caret)
+
+control <- trainControl(method="repeatedcv", number=10, repeats=10, sampling="down")
+model <- train(weather_condition~., data=weather_data_subset, method="lvq", preProcess="scale", trControl=control)
+
+importance <- varImp(model, scale=FALSE)
+plot(importance)
+
+#3
+install.packages("Boruta")
+library(Boruta)
+
+boruta_output <- Boruta(weather_condition ~ ., data=weather_data_subset, doTrace=0)
+boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
+print(boruta_signif)  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
