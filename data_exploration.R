@@ -91,11 +91,15 @@ test <- testing(split)
 # Now, we need to use the 5 feature selection methods on the train and test datasets.
 
 # feature selection
-#1 THIS ONE IS GOOD
+#1 Information Gain
+# selected features: PRCP, PRCP_ATTRIBUTES, SNOW_ATTRIBUTES, TAVG, TMAX, TMAX_ATTRIBUTES, TMIN, WT01, WT04, WT06, WT09
 install.packages("FSelector")
 library(FSelector) #requires JAVA; run in cloud if necessary
-weights <- information.gain(weather_condition~., weather_data_subset)
+weights <- information.gain(weather_condition~., train)
 weights
+
+new_weights <- subset(weights, attr_importance > 0)
+new_weights
 
 #2 BORUTA
 # selected features: PRCP, TMAX, WT01, TAVG, TMIN, SNOW_ATTRIBUTES, WT09, WT04, WDF5, WT08, WT02, WDF2, WT06, WSF5, WSF2, AWND
