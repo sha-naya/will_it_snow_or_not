@@ -89,15 +89,6 @@ train <- training(split)
 test <- testing(split)
 
 # feature selection 
-#2 THIS ONE IS GOOD
-library(caret)
-
-control <- trainControl(method="repeatedcv", number=10, repeats=10, sampling="down")
-model <- train(weather_condition~., data=weather_data_subset, method="lvq", preProcess="scale", trControl=control)
-
-importance <- varImp(model, scale=FALSE)
-plot(importance)
-
 #3 THIS ONE IS GOOD
 install.packages("Boruta")
 library(Boruta)
@@ -147,7 +138,7 @@ sa_obj <- safs(x=weather_data_subset[, -ncol(weather_data_subset)],
 sa_obj
 sa_obj$optVariables
 
-#8
+#8 THIS ONE IS GOOD
 subsets <- c(1:5, 10, 15, 20)
 
 ctrl <- rfeControl(functions = rfFuncs,
