@@ -88,6 +88,9 @@ split <- initial_split(weather_data_subset, prop = 0.70, strata = weather_condit
 train <- training(split)
 test <- testing(split)
 
+write.csv(train, "/Users/ayan/Desktop/BU/Spring 2023/CS699_project/train.csv", row.names=FALSE)
+write.csv(test, "/Users/ayan/Desktop/BU/Spring 2023/CS699_project/test.csv", row.names=FALSE)
+
 # Now, we need to use the 5 feature selection methods on the train and test datasets.
 
 # feature selection
@@ -178,13 +181,3 @@ rfe_obj$optVariables
 
 rfe_train <- train[, c("PRCP", "TMAX", "WT01", "TMIN", "TAVG", "SNOW_ATTRIBUTES", "WT09", "WT04", "WT08", "WDF5", "weather_condition")]
 rfe_test <- test[, c("PRCP", "TMAX", "WT01", "TMIN", "TAVG", "SNOW_ATTRIBUTES", "WT09", "WT04", "WT08", "WDF5", "weather_condition")]
-
-
-
-
-
-
-
-
-
-
