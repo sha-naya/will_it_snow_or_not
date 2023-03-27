@@ -81,8 +81,14 @@ weather_data_subset$WDF5 <- scale(weather_data_subset$WDF5)
 weather_data_subset$WSF2 <- scale(weather_data_subset$WSF2)
 weather_data_subset$WSF5 <- scale(weather_data_subset$WSF5)
 
-# feature selection 
+# train-test split
+library(rsample)
+set.seed(17)
+split <- initial_split(weather_data_subset, prop = 0.70, strata = weather_condition)
+train <- training(split)
+test <- testing(split)
 
+# feature selection 
 #2 THIS ONE IS GOOD
 library(caret)
 
@@ -141,8 +147,20 @@ sa_obj <- safs(x=weather_data_subset[, -ncol(weather_data_subset)],
 sa_obj
 sa_obj$optVariables
 
+#8
+subsets <- c(1:5, 10, 15, 20)
 
+ctrl <- rfeControl(functions = rfFuncs,
+                   method = "repeatedcv",
+                   repeats = 5,
+                   verbose = FALSE)
 
+lmProfile <- rfe(x=weather_data_subset[, -ncol(weather_data_subset)],
+                 y=weather_data_subset$weather_condition,
+                 rfeControl = ctrl)
+
+lmProfile
+lmProfile$optVariables
 
 
 
