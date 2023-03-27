@@ -82,16 +82,8 @@ weather_data_subset$WSF2 <- scale(weather_data_subset$WSF2)
 weather_data_subset$WSF5 <- scale(weather_data_subset$WSF5)
 
 # feature selection 
-#1
-install.packages("party")
-library(party)
-install.packages("varImp")
-library(varImp)
 
-cf1 <- cforest(weather_condition ~ . , data= weather_data_subset, control=cforest_unbiased(mtry=2,ntree=50))
-sort(varimpAUC(cf1))
-
-#2
+#2 THIS ONE IS GOOD
 library(caret)
 
 control <- trainControl(method="repeatedcv", number=10, repeats=10, sampling="down")
@@ -100,7 +92,7 @@ model <- train(weather_condition~., data=weather_data_subset, method="lvq", preP
 importance <- varImp(model, scale=FALSE)
 plot(importance)
 
-#3
+#3 THIS ONE IS GOOD
 install.packages("Boruta")
 library(Boruta)
 
@@ -117,14 +109,48 @@ imps2 = imps[imps$decision != 'Rejected', c('meanImp', 'decision')]
 head(imps2[order(-imps2$meanImp), ])
 plot(boruta_output, cex.axis=.7, las=2, xlab="", main="Variable Importance")
 
-#4
-set.seed(17)
-rPartMod <- train(weather_condition ~ ., data=weather_data_subset, method="rpart")
-rpartImp <- varImp(rPartMod)
-print(rpartImp)
-
-#5
+#5 THIS ONE IS GOOD
 install.packages("FSelector")
 library(FSelector) #requires JAVA; run in cloud if necessary
 weights <- information.gain(weather_condition~., weather_data_subset)
 weights
+
+#6 THIS ONE IS GOOD
+library(caret)
+ga_ctrl <- gafsControl(functions = rfGA,  # another option is `caretGA`.
+                       method = "repeatedcv",
+                       repeats = 3,
+                       )
+ga_obj <- gafs(x=weather_data_subset[, -ncol(weather_data_subset)],
+               y=weather_data_subset$weather_condition,
+               iters = 3,   # normally much higher (100+)
+               gafsControl = ga_ctrl)
+ga_obj
+ga_obj$optVariables
+
+#7 THIS ONE IS GOOD
+sa_ctrl <- safsControl(functions = rfSA,
+                       method = "repeatedcv",
+                       repeats = 3,
+                       improve = 5) # n iterations without improvement before a reset
+
+sa_obj <- safs(x=weather_data_subset[, -ncol(weather_data_subset)],
+               y=weather_data_subset$weather_condition,
+               safsControl = sa_ctrl)
+
+sa_obj
+sa_obj$optVariables
+
+
+
+
+
+
+
+
+
+
+
+
+
+
