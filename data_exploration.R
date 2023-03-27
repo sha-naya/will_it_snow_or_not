@@ -101,6 +101,9 @@ weights
 new_weights <- subset(weights, attr_importance > 0)
 new_weights
 
+ig_train <- train[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMAX", "TMAX_ATTRIBUTES", "TMIN", "WT01", "WT04", "WT06", "WT09", "weather_condition")]
+ig_test <- test[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMAX", "TMAX_ATTRIBUTES", "TMIN", "WT01", "WT04", "WT06", "WT09", "weather_condition")]
+
 #2 BORUTA
 # selected features: PRCP, TMAX, WT01, TAVG, TMIN, SNOW_ATTRIBUTES, WT09, WT04, WDF5, WT08, WT02, WDF2, WT06, WSF5, WSF2, AWND
 install.packages("Boruta")
@@ -119,6 +122,9 @@ imps2 <- imps[imps$decision != 'Rejected', c('meanImp', 'decision')]
 head(imps2[order(-imps2$meanImp), ])
 plot(boruta_output, cex.axis=.7, las=2, xlab="", main="Variable Importance")
 
+boruta_train <- train[, c("PRCP", "TMAX", "WT01", "TAVG", "TMIN", "SNOW_ATTRIBUTES", "WT09", "WT04", "WDF5", "WT08", "WT02", "WDF2", "WT06", "WSF5", "WSF2", "AWND", "weather_condition")]
+boruta_test <- test[, c("PRCP", "TMAX", "WT01", "TAVG", "TMIN", "SNOW_ATTRIBUTES", "WT09", "WT04", "WDF5", "WT08", "WT02", "WDF2", "WT06", "WSF5", "WSF2", "AWND", "weather_condition")]
+
 #3 Genetic Algorithm
 # selected features: AWND, PRCP_ATTRIBUTES, SNOW_ATTRIBUTES, TAVG, TMIN, WDF5, WT01, WT03, WT04, WT05, WT08
 library(caret)
@@ -133,6 +139,9 @@ ga_obj <- gafs(x=train[, -ncol(train)],
 ga_obj
 ga_obj$optVariables
 
+ga_train <- train[, c("AWND", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMIN", "WDF5", "WT01", "WT03", "WT04", "WT05", "WT08", "weather_condition")]
+ga_test <- test[, c("AWND", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMIN", "WDF5", "WT01", "WT03", "WT04", "WT05", "WT08", "weather_condition")]
+
 #4 Simulated Annealing
 # selected features: TAVG, WSF5, WT02, WT04, WT05, WT06, WT09
 sa_ctrl <- safsControl(functions = rfSA,
@@ -146,6 +155,9 @@ sa_obj <- safs(x=train[, -ncol(train)],
 
 sa_obj
 sa_obj$optVariables
+
+sa_train <- train[, c("TAVG", "WSF5", "WT02", "WT04", "WT05", "WT06", "WT09", "weather_condition")]
+sa_test <- test[, c("TAVG", "WSF5", "WT02", "WT04", "WT05", "WT06", "WT09", "weather_condition")]
 
 #8 Recursive Feature Elimination
 # selected features: PRCP, TMAX, WT01, TMIN, TAVG, SNOW_ATTRIBUTES, WT09, WT04, WT08, WDF5
@@ -164,6 +176,8 @@ rfe_obj <- rfe(x=train[, -ncol(train)],
 rfe_obj
 rfe_obj$optVariables
 
+rfe_train <- train[, c("PRCP", "TMAX", "WT01", "TMIN", "TAVG", "SNOW_ATTRIBUTES", "WT09", "WT04", "WT08", "WDF5", "weather_condition")]
+rfe_test <- test[, c("PRCP", "TMAX", "WT01", "TMIN", "TAVG", "SNOW_ATTRIBUTES", "WT09", "WT04", "WT08", "WDF5", "weather_condition")]
 
 
 
