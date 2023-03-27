@@ -88,12 +88,21 @@ split <- initial_split(weather_data_subset, prop = 0.70, strata = weather_condit
 train <- training(split)
 test <- testing(split)
 
-# feature selection 
-#3 THIS ONE IS GOOD
+# Now, we need to use the 5 feature selection methods on the train and test datasets.
+
+# feature selection
+#1 THIS ONE IS GOOD
+install.packages("FSelector")
+library(FSelector) #requires JAVA; run in cloud if necessary
+weights <- information.gain(weather_condition~., weather_data_subset)
+weights
+
+#2 BORUTA
+# selected features: PRCP, TMAX, WT01, TAVG, TMIN, SNOW_ATTRIBUTES, WT09, WT04, WDF5, WT08, WT02, WDF2, WT06, WSF5, WSF2, AWND
 install.packages("Boruta")
 library(Boruta)
 
-boruta_output <- Boruta(weather_condition ~ ., data=weather_data_subset, doTrace=0)
+boruta_output <- Boruta(weather_condition ~ ., data=train, doTrace=0)
 boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
 print(boruta_signif)  
 
@@ -102,43 +111,40 @@ boruta_signif <- getSelectedAttributes(roughFixMod)
 print(boruta_signif)
 
 imps <- attStats(roughFixMod)
-imps2 = imps[imps$decision != 'Rejected', c('meanImp', 'decision')]
+imps2 <- imps[imps$decision != 'Rejected', c('meanImp', 'decision')]
 head(imps2[order(-imps2$meanImp), ])
 plot(boruta_output, cex.axis=.7, las=2, xlab="", main="Variable Importance")
 
-#5 THIS ONE IS GOOD
-install.packages("FSelector")
-library(FSelector) #requires JAVA; run in cloud if necessary
-weights <- information.gain(weather_condition~., weather_data_subset)
-weights
-
-#6 THIS ONE IS GOOD
+#3 Genetic Algorithm
+# selected features: AWND, PRCP_ATTRIBUTES, SNOW_ATTRIBUTES, TAVG, TMIN, WDF5, WT01, WT03, WT04, WT05, WT08
 library(caret)
 ga_ctrl <- gafsControl(functions = rfGA,  # another option is `caretGA`.
                        method = "repeatedcv",
                        repeats = 3,
                        )
-ga_obj <- gafs(x=weather_data_subset[, -ncol(weather_data_subset)],
-               y=weather_data_subset$weather_condition,
+ga_obj <- gafs(x=train[, -ncol(train)],
+               y=train$weather_condition,
                iters = 3,   # normally much higher (100+)
                gafsControl = ga_ctrl)
 ga_obj
 ga_obj$optVariables
 
-#7 THIS ONE IS GOOD
+#4 Simulated Annealing
+# selected features: TAVG, WSF5, WT02, WT04, WT05, WT06, WT09
 sa_ctrl <- safsControl(functions = rfSA,
                        method = "repeatedcv",
                        repeats = 3,
                        improve = 5) # n iterations without improvement before a reset
 
-sa_obj <- safs(x=weather_data_subset[, -ncol(weather_data_subset)],
-               y=weather_data_subset$weather_condition,
+sa_obj <- safs(x=train[, -ncol(train)],
+               y=train$weather_condition,
                safsControl = sa_ctrl)
 
 sa_obj
 sa_obj$optVariables
 
-#8 THIS ONE IS GOOD
+#8 Recursive Feature Elimination
+# selected features: PRCP, TMAX, WT01, TMIN, TAVG, SNOW_ATTRIBUTES, WT09, WT04, WT08, WDF5
 subsets <- c(1:5, 10, 15, 20)
 
 ctrl <- rfeControl(functions = rfFuncs,
@@ -146,12 +152,13 @@ ctrl <- rfeControl(functions = rfFuncs,
                    repeats = 5,
                    verbose = FALSE)
 
-lmProfile <- rfe(x=weather_data_subset[, -ncol(weather_data_subset)],
-                 y=weather_data_subset$weather_condition,
-                 rfeControl = ctrl)
+rfe_obj <- rfe(x=train[, -ncol(train)],
+               y=train$weather_condition,
+               sizes = subsets,
+               rfeControl = ctrl)
 
-lmProfile
-lmProfile$optVariables
+rfe_obj
+rfe_obj$optVariables
 
 
 
