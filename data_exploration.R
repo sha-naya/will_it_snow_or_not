@@ -112,8 +112,48 @@ weights
 new_weights <- subset(weights, attr_importance > 0)
 new_weights
 
-ig_train <- train[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMAX", "TMAX_ATTRIBUTES", "TMIN", "WT01", "WT04", "WT06", "WT09", "weather_condition")]
-ig_test <- test[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMAX", "TMAX_ATTRIBUTES", "TMIN", "WT01", "WT04", "WT06", "WT09", "weather_condition")]
+ig_train <- train[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMAX", "TMIN", "WT01", "weather_condition")]
+ig_test <- test[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMAX", "TMIN", "WT01", "weather_condition")]
+
+library(caret)
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, 
+                     repeats = 5, 
+                     verboseIter = FALSE,
+                     sampling = "up")
+
+nb_grid <- expand.grid(usekernel = c(TRUE), fL = 0:5, adjust = seq(0, 5, by = 1))
+ig_nb_model <- train(weather_condition ~ .,
+                     data = ig_train,
+                     method = "nb",
+                     preProcess = c("scale", "center"),
+                     trControl = ctrl,
+                     tuneGrid = nb_grid)
+ig_nb_model
+test_pred <- predict(ig_nb_model, newdata = ig_test)
+confusionMatrix(test_pred, ig_test$weather_condition)
+
+ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
+ig_ada_model <- train(weather_condition ~ .,
+                      data = ig_train,
+                      method = "ada",
+                      preProcess = c("scale", "center"),
+                      trControl = ctrl,
+                      tuneGrid = ada_grid)
+ig_ada_model
+test_pred <- predict(ig_ada_model, newdata = ig_test)
+confusionMatrix(test_pred, ig_test$weather_condition)
+
+rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
+ig_rpart_model <- train(weather_condition ~ .,
+                        data = ig_train,
+                        method = "rpart",
+                        preProcess = c("scale", "center"),
+                        trControl = ctrl,
+                        tuneGrid = rpart_grid)
+ig_rpart_model
+test_pred <- predict(ig_rpart_model, newdata = ig_test)
+confusionMatrix(test_pred, ig_test$weather_condition)
 
 #2 BORUTA
 install.packages("Boruta")
@@ -188,8 +228,47 @@ ga_obj <- gafs(x=train[, -ncol(train)],
 ga_obj
 ga_obj$optVariables
 
-ga_train <- train[, c("AWND", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMIN", "WDF5", "WT01", "WT03", "WT04", "WT05", "WT08", "weather_condition")]
-ga_test <- test[, c("AWND", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMIN", "WDF5", "WT01", "WT03", "WT04", "WT05", "WT08", "weather_condition")]
+ga_train <- train[, c("PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "WT01", "WT03", "weather_condition")]
+ga_test <- test[, c("PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "WT01", "WT03", "weather_condition")]
+
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, 
+                     repeats = 5, 
+                     verboseIter = FALSE,
+                     sampling = "up")
+
+nb_grid <- expand.grid(usekernel = c(TRUE), fL = 0:5, adjust = seq(0, 5, by = 1))
+ga_nb_model <- train(weather_condition ~ .,
+                         data = ga_train,
+                         method = "nb",
+                         preProcess = c("scale", "center"),
+                         trControl = ctrl,
+                         tuneGrid = nb_grid)
+ga_nb_model
+test_pred <- predict(ga_nb_model, newdata = ga_test)
+confusionMatrix(test_pred, ga_test$weather_condition)
+
+ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
+ga_ada_model <- train(weather_condition ~ .,
+                          data = ga_train,
+                          method = "ada",
+                          preProcess = c("scale", "center"),
+                          trControl = ctrl,
+                          tuneGrid = ada_grid)
+ga_ada_model
+test_pred <- predict(ga_ada_model, newdata = ga_test)
+confusionMatrix(test_pred, ga_test$weather_condition)
+
+rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
+ga_rpart_model <- train(weather_condition ~ .,
+                            data = ga_train,
+                            method = "rpart",
+                            preProcess = c("scale", "center"),
+                            trControl = ctrl,
+                            tuneGrid = rpart_grid)
+ga_rpart_model
+test_pred <- predict(ga_rpart_model, newdata = ga_test)
+confusionMatrix(test_pred, ga_test$weather_condition)
 
 #4 Simulated Annealing
 set.seed(17)
