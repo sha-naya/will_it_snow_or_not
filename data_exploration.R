@@ -81,21 +81,29 @@ weather_data_subset$WDF5 <- scale(weather_data_subset$WDF5)
 weather_data_subset$WSF2 <- scale(weather_data_subset$WSF2)
 weather_data_subset$WSF5 <- scale(weather_data_subset$WSF5)
 
+################################################################################
+
 # train-test split
 library(rsample)
 set.seed(17)
-split <- initial_split(weather_data_subset, prop = 0.70, strata = weather_condition)
+
+nearZeroVar(weather_data_subset)
+weather_data_subset_fixed <- weather_data_subset[,-c(7, 14, 16, 17, 18, 20)]
+weather_data_subset_fixed
+
+split <- initial_split(weather_data_subset_fixed, prop = 0.70, strata = weather_condition)
 train <- training(split)
 test <- testing(split)
 
 write.csv(train, "/Users/ayan/Desktop/BU/Spring 2023/CS699_project/train.csv", row.names=FALSE)
 write.csv(test, "/Users/ayan/Desktop/BU/Spring 2023/CS699_project/test.csv", row.names=FALSE)
 
+################################################################################
+
 # Now, we need to use the 5 feature selection methods on the train and test datasets.
 
 # feature selection
 #1 Information Gain
-# selected features: PRCP, PRCP_ATTRIBUTES, SNOW_ATTRIBUTES, TAVG, TMAX, TMAX_ATTRIBUTES, TMIN, WT01, WT04, WT06, WT09
 install.packages("FSelector")
 library(FSelector) #requires JAVA; run in cloud if necessary
 weights <- information.gain(weather_condition~., train)
@@ -108,10 +116,10 @@ ig_train <- train[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMA
 ig_test <- test[, c("PRCP", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMAX", "TMAX_ATTRIBUTES", "TMIN", "WT01", "WT04", "WT06", "WT09", "weather_condition")]
 
 #2 BORUTA
-# selected features: PRCP, TMAX, WT01, TAVG, TMIN, SNOW_ATTRIBUTES, WT09, WT04, WDF5, WT08, WT02, WDF2, WT06, WSF5, WSF2, AWND
 install.packages("Boruta")
 library(Boruta)
 
+set.seed(17)
 boruta_output <- Boruta(weather_condition ~ ., data=train, doTrace=0)
 boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
 print(boruta_signif)  
@@ -122,14 +130,52 @@ print(boruta_signif)
 
 imps <- attStats(roughFixMod)
 imps2 <- imps[imps$decision != 'Rejected', c('meanImp', 'decision')]
-head(imps2[order(-imps2$meanImp), ])
+imps2[order(-imps2$meanImp), ]
 plot(boruta_output, cex.axis=.7, las=2, xlab="", main="Variable Importance")
 
-boruta_train <- train[, c("PRCP", "TMAX", "WT01", "TAVG", "TMIN", "SNOW_ATTRIBUTES", "WT09", "WT04", "WDF5", "WT08", "WT02", "WDF2", "WT06", "WSF5", "WSF2", "AWND", "weather_condition")]
-boruta_test <- test[, c("PRCP", "TMAX", "WT01", "TAVG", "TMIN", "SNOW_ATTRIBUTES", "WT09", "WT04", "WDF5", "WT08", "WT02", "WDF2", "WT06", "WSF5", "WSF2", "AWND", "weather_condition")]
+boruta_train <- train[, c("PRCP","TMAX", "WT01", "TAVG", "TMIN", "SNOW_ATTRIBUTES", "weather_condition")]
+boruta_test <- test[, c("PRCP","TMAX", "WT01", "TAVG", "TMIN", "SNOW_ATTRIBUTES", "weather_condition")]
+
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, 
+                     repeats = 5, 
+                     verboseIter = FALSE,
+                     sampling = "up")
+
+nb_grid <- expand.grid(usekernel = c(TRUE), fL = 0:5, adjust = seq(0, 5, by = 1))
+boruta_nb_model <- train(weather_condition ~ .,
+                           data = boruta_train,
+                           method = "nb",
+                           preProcess = c("scale", "center"),
+                           trControl = ctrl,
+                           tuneGrid = nb_grid)
+boruta_nb_model
+test_pred <- predict(boruta_nb_model, newdata = boruta_test)
+confusionMatrix(test_pred, boruta_test$weather_condition)
+
+ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
+boruta_ada_model <- train(weather_condition ~ .,
+                         data = boruta_train,
+                         method = "ada",
+                         preProcess = c("scale", "center"),
+                         trControl = ctrl,
+                         tuneGrid = ada_grid)
+boruta_ada_model
+test_pred <- predict(boruta_ada_model, newdata = boruta_test)
+confusionMatrix(test_pred, boruta_test$weather_condition)
+
+rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
+boruta_rpart_model <- train(weather_condition ~ .,
+                          data = boruta_train,
+                          method = "rpart",
+                          preProcess = c("scale", "center"),
+                          trControl = ctrl,
+                          tuneGrid = rpart_grid)
+boruta_rpart_model
+test_pred <- predict(boruta_rpart_model, newdata = boruta_test)
+confusionMatrix(test_pred, boruta_test$weather_condition)
 
 #3 Genetic Algorithm
-# selected features: AWND, PRCP_ATTRIBUTES, SNOW_ATTRIBUTES, TAVG, TMIN, WDF5, WT01, WT03, WT04, WT05, WT08
 library(caret)
 ga_ctrl <- gafsControl(functions = rfGA,  # another option is `caretGA`.
                        method = "repeatedcv",
@@ -146,7 +192,7 @@ ga_train <- train[, c("AWND", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMI
 ga_test <- test[, c("AWND", "PRCP_ATTRIBUTES", "SNOW_ATTRIBUTES", "TAVG", "TMIN", "WDF5", "WT01", "WT03", "WT04", "WT05", "WT08", "weather_condition")]
 
 #4 Simulated Annealing
-# selected features: TAVG, WSF5, WT02, WT04, WT05, WT06, WT09
+set.seed(17)
 sa_ctrl <- safsControl(functions = rfSA,
                        method = "repeatedcv",
                        repeats = 3,
@@ -159,12 +205,51 @@ sa_obj <- safs(x=train[, -ncol(train)],
 sa_obj
 sa_obj$optVariables
 
-sa_train <- train[, c("TAVG", "WSF5", "WT02", "WT04", "WT05", "WT06", "WT09", "weather_condition")]
-sa_test <- test[, c("TAVG", "WSF5", "WT02", "WT04", "WT05", "WT06", "WT09", "weather_condition")]
+sa_train <- train[, c("SNOW_ATTRIBUTES", "TMAX", "WT08", "PRCP", "TAVG", "weather_condition")]
+sa_test <- test[, c("SNOW_ATTRIBUTES", "TMAX", "WT08", "PRCP", "TAVG", "weather_condition")]
 
-#8 Recursive Feature Elimination
-# selected features: PRCP, TMAX, WT01, TMIN, TAVG, SNOW_ATTRIBUTES, WT09, WT04, WT08, WDF5
-subsets <- c(1:5, 10, 15, 20)
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, 
+                     repeats = 5, 
+                     verboseIter = FALSE,
+                     sampling = "up")
+
+nb_grid <- expand.grid(usekernel = c(TRUE), fL = 0:5, adjust = seq(0, 5, by = 1))
+sa_nb_model <- train(weather_condition ~ .,
+                         data = sa_train,
+                         method = "nb",
+                         preProcess = c("scale", "center"),
+                         trControl = ctrl,
+                         tuneGrid = nb_grid)
+sa_nb_model
+test_pred <- predict(sa_nb_model, newdata = sa_test)
+confusionMatrix(test_pred, sa_test$weather_condition)
+
+ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
+sa_ada_model <- train(weather_condition ~ .,
+                          data = sa_train,
+                          method = "ada",
+                          preProcess = c("scale", "center"),
+                          trControl = ctrl,
+                          tuneGrid = ada_grid)
+sa_ada_model
+test_pred <- predict(sa_ada_model, newdata = sa_test)
+confusionMatrix(test_pred, sa_test$weather_condition)
+
+rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
+sa_rpart_model <- train(weather_condition ~ .,
+                            data = sa_train,
+                            method = "rpart",
+                            preProcess = c("scale", "center"),
+                            trControl = ctrl,
+                            tuneGrid = rpart_grid)
+sa_rpart_model
+test_pred <- predict(sa_rpart_model, newdata = sa_test)
+confusionMatrix(test_pred, sa_test$weather_condition)
+
+#5 Recursive Feature Elimination
+set.seed(17)
+subsets <- c(1:5, 10, 14)
 
 ctrl <- rfeControl(functions = rfFuncs,
                    method = "repeatedcv",
@@ -179,5 +264,46 @@ rfe_obj <- rfe(x=train[, -ncol(train)],
 rfe_obj
 rfe_obj$optVariables
 
-rfe_train <- train[, c("PRCP", "TMAX", "WT01", "TMIN", "TAVG", "SNOW_ATTRIBUTES", "WT09", "WT04", "WT08", "WDF5", "weather_condition")]
-rfe_test <- test[, c("PRCP", "TMAX", "WT01", "TMIN", "TAVG", "SNOW_ATTRIBUTES", "WT09", "WT04", "WT08", "WDF5", "weather_condition")]
+rfe_train <- train[, c("PRCP","WT01","TMAX","TMIN","TAVG", "weather_condition")]
+rfe_test <- test[, c("PRCP","WT01","TMAX","TMIN","TAVG", "weather_condition")]
+
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 10, 
+                     repeats = 5, 
+                     verboseIter = FALSE,
+                     sampling = "up")
+
+nb_grid <- expand.grid(usekernel = c(TRUE), fL = 0:5, adjust = seq(0, 5, by = 1))
+rfe_nb_model <- train(weather_condition ~ .,
+                     data = rfe_train,
+                     method = "nb",
+                     preProcess = c("scale", "center"),
+                     trControl = ctrl,
+                     tuneGrid = nb_grid)
+rfe_nb_model
+test_pred <- predict(rfe_nb_model, newdata = rfe_test)
+confusionMatrix(test_pred, rfe_test$weather_condition)
+
+ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
+rfe_ada_model <- train(weather_condition ~ .,
+                      data = rfe_train,
+                      method = "ada",
+                      preProcess = c("scale", "center"),
+                      trControl = ctrl,
+                      tuneGrid = ada_grid)
+rfe_ada_model
+test_pred <- predict(rfe_ada_model, newdata = rfe_test)
+confusionMatrix(test_pred, rfe_test$weather_condition)
+
+rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
+rfe_rpart_model <- train(weather_condition ~ .,
+                        data = rfe_train,
+                        method = "rpart",
+                        preProcess = c("scale", "center"),
+                        trControl = ctrl,
+                        tuneGrid = rpart_grid)
+rfe_rpart_model
+test_pred <- predict(rfe_rpart_model, newdata = rfe_test)
+confusionMatrix(test_pred, rfe_test$weather_condition)
+
+################################################################################
