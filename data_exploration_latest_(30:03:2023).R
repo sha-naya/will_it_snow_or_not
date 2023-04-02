@@ -107,6 +107,11 @@ write.csv(test, "/Users/ayan/Desktop/BU/Spring 2023/CS699_project/test.csv", row
 ################################################################################
 
 # Now, we need to use the 5 feature selection methods on the train and test datasets.
+install.packages("mltools")
+library(mltools)
+
+install.packages("pROC")
+library(pROC)
 
 # Feature Selection
 # Method 1: Information Gain
@@ -140,6 +145,9 @@ test_pred_ig_nb <- predict(ig_nb_model, newdata = ig_test)
 CM1 <- confusionMatrix(test_pred_ig_nb, ig_test$weather_condition, mode = "everything")
 saveRDS(CM1, file="CM1.RData")
 
+mltools::mcc(test_pred_ig_nb, ig_test$weather_condition)
+auc(ig_test$weather_condition, factor(test_pred_ig_nb, ordered = TRUE))
+
 ##Information Gain - AdaBoost (2/25)
 ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
 ig_ada_model <- train(weather_condition ~ .,
@@ -152,6 +160,9 @@ ig_ada_model
 test_pred_ig_ada <- predict(ig_ada_model, newdata = ig_test)
 CM2 <- confusionMatrix(test_pred_ig_ada, ig_test$weather_condition, mode = "everything")
 saveRDS(CM2, file="CM2.RData")
+
+mltools::mcc(test_pred_ig_ada, ig_test$weather_condition)
+auc(ig_test$weather_condition, factor(test_pred_ig_ada, ordered = TRUE))
 
 ##Information Gain - RPart (3/25)
 rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
@@ -166,6 +177,9 @@ test_pred_ig_rpart <- predict(ig_rpart_model, newdata = ig_test)
 CM3 <- confusionMatrix(test_pred_ig_rpart, ig_test$weather_condition, mode = "everything")
 saveRDS(CM3, file="CM3.RData")
 
+mltools::mcc(test_pred_ig_rpart, ig_test$weather_condition)
+auc(ig_test$weather_conditio, factor(test_pred_ig_rpart, ordered = TRUE))
+
 ##Information Gain - GLM (4/25)
 glm_grid <- expand.grid(.parameter = seq(1, 10, 1))
 ig_glm_model <- train(weather_condition ~ .,
@@ -179,6 +193,9 @@ test_pred_ig_glm <- predict(ig_glm_model, newdata = ig_test)
 CM4 <- confusionMatrix(test_pred_ig_glm, ig_test$weather_condition, mode = "everything")
 saveRDS(CM4, file="CM4.RData")
 
+mltools::mcc(test_pred_ig_glm, ig_test$weather_condition)
+auc(ig_test$weather_conditio, factor(test_pred_ig_glm, ordered = TRUE))
+
 ##Information Gain - Random Forest (5/25)
 rf_grid <- expand.grid(mtry = 1:9)
 ig_rf_model <- train(weather_condition ~ .,
@@ -191,6 +208,9 @@ ig_rf_model
 test_pred_ig_rf <- predict(ig_rf_model, newdata = ig_test)
 CM5 <- confusionMatrix(test_pred_ig_rf, ig_test$weather_condition, mode = "everything")
 saveRDS(CM5, file="CM5.RData")
+
+mltools::mcc(test_pred_ig_rf, ig_test$weather_condition)
+auc(ig_test$weather_conditio, factor(test_pred_ig_rf, ordered = TRUE))
 
 #2 Method 2: BORUTA
 install.packages("Boruta")
@@ -235,6 +255,9 @@ saveRDS(CM6, file="CM6.RData")
 CM6_copy <- readRDS("CM6.RData")
 CM6_copy
 
+mltools::mcc(test_pred_boruta_nb, boruta_test$weather_condition)
+auc(boruta_test$weather_conditio, factor(test_pred_boruta_nb, ordered = TRUE))
+
 ##Boruta - AdaBoost (7/25)
 ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
 boruta_ada_model <- train(weather_condition ~ .,
@@ -247,6 +270,9 @@ boruta_ada_model
 test_pred_boruta_ada <- predict(boruta_ada_model, newdata = boruta_test)
 CM7 <- confusionMatrix(test_pred_boruta_ada, boruta_test$weather_condition, mode = "everything")
 saveRDS(CM7, file="CM7.RData")
+
+mltools::mcc(test_pred_boruta_ada, boruta_test$weather_condition)
+auc(boruta_test$weather_conditio, factor(test_pred_boruta_ada, ordered = TRUE))
 
 ##Boruta - RPart (8/25)
 rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
@@ -261,6 +287,9 @@ test_pred_boruta_rpart <- predict(boruta_rpart_model, newdata = boruta_test)
 CM8 <- confusionMatrix(test_pred_boruta_rpart, boruta_test$weather_condition, mode = "everything")
 saveRDS(CM8, file="CM8.RData")
 
+mltools::mcc(test_pred_boruta_rpart, boruta_test$weather_condition)
+auc(boruta_test$weather_conditio, factor(test_pred_boruta_rpart, ordered = TRUE))
+
 ##Boruta - GLM (9/25)
 glm_grid <- expand.grid(.parameter = seq(1, 10, 1))
 boruta_glm_model <- train(weather_condition ~ .,
@@ -274,6 +303,9 @@ test_pred_boruta_glm <- predict(boruta_glm_model, newdata = boruta_test)
 CM9 <- confusionMatrix(test_pred_boruta_glm, boruta_test$weather_condition, mode = "everything")
 saveRDS(CM9, file="CM9.RData")
 
+mltools::mcc(test_pred_boruta_glm, boruta_test$weather_condition)
+auc(boruta_test$weather_conditio, factor(test_pred_boruta_glm, ordered = TRUE))
+
 ##Boruta - Random Forest (10/25)
 rf_grid <- expand.grid(mtry = 1:9)
 boruta_rf_model <- train(weather_condition ~ .,
@@ -286,6 +318,9 @@ boruta_rf_model
 test_pred_boruta_rf <- predict(boruta_rf_model, newdata = boruta_test)
 CM10 <- confusionMatrix(test_pred_boruta_rf, boruta_test$weather_condition, mode = "everything")
 saveRDS(CM10, file="CM10.RData")
+
+mltools::mcc(test_pred_boruta_rf, boruta_test$weather_condition)
+auc(boruta_test$weather_conditio, factor(test_pred_boruta_rf, ordered = TRUE))
 
 # Method 3: Genetic Algorithm
 library(caret)
@@ -322,6 +357,9 @@ test_pred_ga_nb <- predict(ga_nb_model, newdata = ga_test)
 CM11 <- confusionMatrix(test_pred_ga_nb, ga_test$weather_condition, mode = "everything")
 saveRDS(CM11, file="CM11.RData")
 
+mltools::mcc(test_pred_ga_nb, ga_test$weather_condition)
+auc(ga_test$weather_condition, factor(test_pred_ga_nb, ordered = TRUE))
+
 ##Genetic Algorithm - AdaBoost (12/25)
 ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
 ga_ada_model <- train(weather_condition ~ .,
@@ -334,6 +372,9 @@ ga_ada_model
 test_pred_ga_ada <- predict(ga_ada_model, newdata = ga_test)
 CM12 <- confusionMatrix(test_pred_ga_ada, ga_test$weather_condition, mode = "everything")
 saveRDS(CM12, file="CM12.RData")
+
+mltools::mcc(test_pred_ga_ada, ga_test$weather_condition)
+auc(ga_test$weather_condition, factor(test_pred_ga_ada, ordered = TRUE))
 
 ##Genetic Algorithm - RPart (13/25)
 rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
@@ -348,6 +389,9 @@ test_pred_ga_rpart <- predict(ga_rpart_model, newdata = ga_test)
 CM13 <- confusionMatrix(test_pred_ga_rpart, ga_test$weather_condition, mode = "everything")
 saveRDS(CM13, file="CM13.RData")
 
+mltools::mcc(test_pred_ga_rpart, ga_test$weather_condition)
+auc(ga_test$weather_condition, factor(test_pred_ga_rpart, ordered = TRUE))
+
 ##Genetic Algorithm - GLM (14/25)
 glm_grid <- expand.grid(.parameter = seq(1, 10, 1))
 ga_glm_model <- train(weather_condition ~ .,
@@ -361,6 +405,9 @@ test_pred_ga_glm <- predict(ga_glm_model, newdata = ga_test)
 CM14 <- confusionMatrix(test_pred_ga_glm, ga_test$weather_condition, mode = "everything")
 saveRDS(CM14, file="CM14.RData")
 
+mltools::mcc(test_pred_ga_glm, ga_test$weather_condition)
+auc(ga_test$weather_condition, factor(test_pred_ga_glm, ordered = TRUE))
+
 ##Genetic Algorithm - Random Forest (15/25)
 rf_grid <- expand.grid(mtry = 1:9)
 ga_rf_model <- train(weather_condition ~ .,
@@ -373,6 +420,9 @@ ga_rf_model
 test_pred_ga_rf <- predict(ga_rf_model, newdata = ga_test)
 CM15 <- confusionMatrix(test_pred_ga_rf, ga_test$weather_condition, mode = "everything")
 saveRDS(CM15, file="CM15.RData")
+
+mltools::mcc(test_pred_ga_rf, ga_test$weather_condition)
+auc(ga_test$weather_condition, factor(test_pred_ga_rf, ordered = TRUE))
 
 # Method 4: Simulated Annealing
 set.seed(17)
@@ -410,6 +460,9 @@ test_pred_sa_nb <- predict(sa_nb_model, newdata = sa_test)
 CM16 <- confusionMatrix(test_pred_sa_nb, sa_test$weather_condition, mode = "everything")
 saveRDS(CM16, file="CM16.RData")
 
+mltools::mcc(test_pred_sa_nb, sa_test$weather_condition)
+auc(sa_test$weather_condition, factor(test_pred_sa_nb, ordered = TRUE))
+
 #Simulated Annealing - AdaBoost (17/25)
 ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
 sa_ada_model <- train(weather_condition ~ .,
@@ -422,6 +475,9 @@ sa_ada_model
 test_pred_sa_ada <- predict(sa_ada_model, newdata = sa_test)
 CM17 <- confusionMatrix(test_pred_sa_ada, sa_test$weather_condition, mode = "everything")
 saveRDS(CM17, file="CM17.RData")
+
+mltools::mcc(test_pred_sa_ada, sa_test$weather_condition)
+auc(sa_test$weather_condition, factor(test_pred_sa_ada, ordered = TRUE))
 
 #Simulated Annealing - RPart (18/25)
 rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
@@ -436,6 +492,9 @@ test_pred_sa_rpart <- predict(sa_rpart_model, newdata = sa_test)
 CM18 <- confusionMatrix(test_pred_sa_rpart, sa_test$weather_condition, mode = "everything")
 saveRDS(CM18, file="CM18.RData")
 
+mltools::mcc(test_pred_sa_rpart, sa_test$weather_condition)
+auc(sa_test$weather_condition, factor(test_pred_sa_rpart, ordered = TRUE))
+
 ##Simulated Annealing - GLM (19/25)
 glm_grid <- expand.grid(.parameter = seq(1, 10, 1))
 sa_glm_model <- train(weather_condition ~ .,
@@ -449,6 +508,8 @@ test_pred_sa_glm <- predict(sa_glm_model, newdata = sa_test)
 CM19 <- confusionMatrix(test_pred_sa_glm, sa_test$weather_condition, mode = "everything")
 saveRDS(CM19, file="CM19.RData")
 
+mltools::mcc(test_pred_sa_glm, sa_test$weather_condition)
+auc(sa_test$weather_condition, factor(test_pred_sa_glm, ordered = TRUE))
 
 ##Simulated Annealing - Random Forest (20/25)
 rf_grid <- expand.grid(mtry = 1:9)
@@ -462,6 +523,9 @@ sa_rf_model
 test_pred_sa_rf <- predict(sa_rf_model, newdata = sa_test)
 CM20 <- confusionMatrix(test_pred_sa_rf, sa_test$weather_condition, mode = "everything")
 saveRDS(CM20, file="CM20.RData")
+
+mltools::mcc(test_pred_sa_rf, sa_test$weather_condition)
+auc(sa_test$weather_condition, factor(test_pred_sa_rf, ordered = TRUE))
 
 # Method 5: Recursive Feature Elimination
 set.seed(17)
@@ -502,6 +566,9 @@ test_pred_rfe_nb <- predict(rfe_nb_model, newdata = rfe_test)
 CM21 <- confusionMatrix(test_pred_rfe_nb, rfe_test$weather_condition, mode = "everything")
 saveRDS(CM21, file="CM21.RData")
 
+mltools::mcc(test_pred_rfe_nb, rfe_test$weather_condition)
+auc(rfe_test$weather_condition, factor(test_pred_rfe_nb, ordered = TRUE))
+
 #RFE - AdaBoost (22/25)
 ada_grid <- expand.grid(iter = 10, maxdepth = 1:10, nu = seq(0.1, 1, by=0.1))
 rfe_ada_model <- train(weather_condition ~ .,
@@ -514,6 +581,9 @@ rfe_ada_model
 test_pred_rfe_ada <- predict(rfe_ada_model, newdata = rfe_test)
 CM22 <- confusionMatrix(test_pred_rfe_ada, rfe_test$weather_condition, mode = "everything")
 saveRDS(CM22, file="CM22.RData")
+
+mltools::mcc(test_pred_rfe_ada, rfe_test$weather_condition)
+auc(rfe_test$weather_condition, factor(test_pred_rfe_ada, ordered = TRUE))
 
 #RFE - RPart (23/25)
 rpart_grid <- expand.grid(cp = seq(0.1, 1, by = 0.1))
@@ -528,6 +598,9 @@ test_pred_rfe_rpart <- predict(rfe_rpart_model, newdata = rfe_test)
 CM23 <- confusionMatrix(test_pred_rfe_rpart, rfe_test$weather_condition, mode = "everything")
 saveRDS(CM23, file="CM23.RData")
 
+mltools::mcc(test_pred_rfe_rpart, rfe_test$weather_condition)
+auc(rfe_test$weather_condition, factor(test_pred_rfe_rpart, ordered = TRUE))
+
 ##RFE - GLM (24/25)
 glm_grid <- expand.grid(.parameter = seq(1, 10, 1))
 rfe_glm_model <- train(weather_condition ~ .,
@@ -541,6 +614,9 @@ test_pred_rfe_glm <- predict(rfe_glm_model, newdata = rfe_test)
 CM24 <- confusionMatrix(test_pred_rfe_glm, rfe_test$weather_condition, mode = "everything")
 saveRDS(CM24, file="CM24.RData")
 
+mltools::mcc(test_pred_rfe_glm, rfe_test$weather_condition)
+auc(rfe_test$weather_condition, factor(test_pred_rfe_glm, ordered = TRUE))
+
 ##SA - Random Forest (25/25)
 rf_grid <- expand.grid(mtry = 1:9)
 rfe_rf_model <- train(weather_condition ~ .,
@@ -553,6 +629,13 @@ rfe_rf_model
 test_pred_rfe_rf <- predict(rfe_rf_model, newdata = rfe_test)
 CM25 <- confusionMatrix(test_pred_rfe_rf, rfe_test$weather_condition, mode = "everything")
 saveRDS(CM25, file="CM25.RData")
+
+mltools::mcc(test_pred_rfe_rf, rfe_test$weather_condition)
+auc(rfe_test$weather_condition, factor(test_pred_rfe_rf, ordered = TRUE))
+
+################################################################################
+
+
 
 ################################################################################
 ## Data Mining Results + Plots
