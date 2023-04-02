@@ -634,7 +634,20 @@ mltools::mcc(test_pred_rfe_rf, rfe_test$weather_condition)
 auc(rfe_test$weather_condition, factor(test_pred_rfe_rf, ordered = TRUE))
 
 ################################################################################
+rf_grid <- expand.grid(mtry = 1:9)
+all_attributes_rf_model <- train(weather_condition ~ .,
+                     data =  train, 
+                     method = "rf",
+                     preProcess = c("scale", "center"),
+                     trControl = ctrl,
+                     tuneGrid = rf_grid)
+all_attributes_rf_model
+test_pred_all_attributes_rf <- predict(all_attributes_rf_model, newdata = test)
+CM_all_attributes <- confusionMatrix(test_pred_all_attributes_rf, test$weather_condition, mode = "everything")
+saveRDS(CM_all_attributes, file="CM_all_attributes.RData")
 
+mltools::mcc(test_pred_all_attributes_rf, test$weather_condition)
+auc(test$weather_conditio, factor(test_pred_all_attributes_rf, ordered = TRUE))
 
 
 ################################################################################
